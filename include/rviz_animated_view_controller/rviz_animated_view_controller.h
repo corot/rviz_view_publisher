@@ -41,6 +41,7 @@
 
 #include <OGRE/OgreVector3.h>
 #include <OGRE/OgreQuaternion.h>
+#include <geometry_msgs/Pose.h>
 
 namespace rviz {
   class SceneNode;
@@ -196,7 +197,6 @@ protected:  //methods
 protected Q_SLOTS:
   void updateTopics();
 
-
 protected:    //members
 
   ros::NodeHandle nh_;
@@ -236,6 +236,9 @@ protected:    //members
   
 //  ros::Subscriber trajectory_subscriber_;
   ros::Subscriber placement_subscriber_;
+  ros::Publisher view_publisher_;
+  ros::Timer timer;
+  void timerCallback(const ros::TimerEvent&);
 
 };
 

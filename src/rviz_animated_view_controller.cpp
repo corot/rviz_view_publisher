@@ -146,9 +146,11 @@ void AnimatedViewController::updateTopics()
 //  trajectory_subscriber_ = nh_.subscribe<view_controller_msgs::CameraPlacementTrajectory>
 //                              (camera_placement_trajectory_topic_property_->getStdString(), 1,
 //                              boost::bind(&AnimatedViewController::cameraPlacementTrajectoryCallback, this, _1));
-  placement_subscriber_  = nh_.subscribe<view_controller_msgs::CameraPlacement>
-                              (camera_placement_topic_property_->getStdString(), 1,
-                              boost::bind(&AnimatedViewController::cameraPlacementCallback, this, _1));
+  // placement_subscriber_  = nh_.subscribe<view_controller_msgs::CameraPlacement>
+  //                             (camera_placement_topic_property_->getStdString(), 1,
+  //                             boost::bind(&AnimatedViewController::cameraPlacementCallback, this, _1));
+  view_publisher_ = nh_.advertise<geometry_msgs::Pose>("rviz_view", 50);
+  timer = nh_.createTimer(ros::Duration(1.0/10.0), boost::bind(&AnimatedViewController::timerCallback, this, _1));
 }
 
 void AnimatedViewController::onInitialize()
@@ -169,7 +171,7 @@ void AnimatedViewController::onInitialize()
 
 void AnimatedViewController::onActivate()
 {
-  updateAttachedSceneNode();
+  //updateAttachedSceneNode();
 
   // Before activation, changes to target frame property should have
   // no side-effects.  After activation, changing target frame
@@ -177,8 +179,8 @@ void AnimatedViewController::onActivate()
   // property so that the view does not jump.  Therefore we make the
   // signal/slot connection from the property here in onActivate()
   // instead of in the constructor.
-  connect( attached_frame_property_, SIGNAL( changed() ), this, SLOT( updateAttachedFrame() ));
-  connect( fixed_up_property_,       SIGNAL( changed() ), this, SLOT( onUpPropertyChanged() ));
+  // connect( attached_frame_property_, SIGNAL( changed() ), this, SLOT( updateAttachedFrame() ));
+  // connect( fixed_up_property_,       SIGNAL( changed() ), this, SLOT( onUpPropertyChanged() ));
   connectPositionProperties();
 
   // Only do this once activated!
@@ -274,7 +276,6 @@ void AnimatedViewController::onAttachedFrameChanged(const Ogre::Vector3& old_ref
   Ogre::Vector3 new_up_vector = reference_orientation_.Inverse()*old_reference_orientation*up_vector_property_->getVector();
 
   //Ogre::Quaternion new_camera_orientation = reference_orientation_.Inverse()*old_reference_orientation*getOrientation();
-
   focus_point_property_->setVector(new_focus_position);
   eye_point_property_->setVector(new_eye_position);
   up_vector_property_->setVector(fixed_up_property_->getBool() ? Ogre::Vector3::UNIT_Z : new_up_vector);
@@ -540,6 +541,10 @@ void AnimatedViewController::cancelTransition()
 void AnimatedViewController::cameraPlacementCallback(const CameraPlacementConstPtr &cp_ptr)
 {
   CameraPlacement cp = *cp_ptr;
+  Ogre::Vector3 new_eye =   eye_point_property_->getVector();
+  ROS_INFO("eye position is x: %f y: %f z: %f", new_eye.x, new_eye.y, new_eye.z);
+  Ogre::Quaternion camera_orientation = getOrientation();
+  ROS_INFO("eye orientation is x: %f y: %f z: %f w: %f", camera_orientation.x, camera_orientation.y, camera_orientation.z, camera_orientation.w);
 
   // Handle control parameters
   mouse_enabled_property_->setBool( !cp.interaction_disabled );
@@ -776,6 +781,23 @@ void AnimatedViewController::move_eye( float x, float y, float z )
   distance_property_->setFloat(getDistanceFromCameraToFocalPoint());
 }
 
+void AnimatedViewController::timerCallback(const ros::TimerEvent&)
+{
+  ros::Time current_time = ros::Time::now();
+  Ogre::Vector3 camera_position =   eye_point_property_->getVector();
+  // ROS_INFO("eye position is x: %f y: %f z: %f", camera_position.x, camera_position.y, camera_position.z);
+  Ogre::Quaternion camera_orientation = getOrientation();
+  //ROS_INFO("eye orientation is x: %f y: %f z: %f w: %f", camera_orientation.x, camera_orientation.y, camera_orientation.z, camera_orientation.w);
+  geometry_msgs::Pose camera_view;
+  camera_view.position.x = camera_position.x;
+  camera_view.position.y = camera_position.y;
+  camera_view.position.z = camera_position.z;
+  camera_view.orientation.x = camera_orientation.x;
+  camera_view.orientation.y = camera_orientation.y;
+  camera_view.orientation.z = camera_orientation.z;
+  camera_view.orientation.w = camera_orientation.w;
+  view_publisher_.publish(camera_view);
+}
 
 
 } // end namespace rviz

@@ -9,9 +9,11 @@ find_package(Boost REQUIRED system filesystem)
 pkg_check_modules(OGRE OGRE)
 
 # Qt Stuff
-find_package(Qt4 REQUIRED)
-include(${QT_USE_FILE})
-add_definitions(-DQT_NO_KEYWORDS)
+#find_package(Qt4 REQUIRED)
+#include(${QT_USE_FILE})
+#add_definitions(-DQT_NO_KEYWORDS)
+find_package(Qt5 ${rviz_QT_VERSION} EXACT REQUIRED Core Widgets)
+set(QT_LIBRARIES Qt5::Widgets)
 
 find_package(OpenGL REQUIRED)
 
@@ -27,7 +29,7 @@ catkin_package(
   CATKIN_DEPENDS view_controller_msgs
   )
 
-qt4_wrap_cpp(MOC_FILES
+qt5_wrap_cpp(MOC_FILES
   include/${PROJECT_NAME}/rviz_animated_view_controller.h
 )
 
