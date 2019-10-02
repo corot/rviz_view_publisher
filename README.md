@@ -10,6 +10,7 @@ clone and build:
 ```
 cd <your_catkin_ws_dir>/src
 git clone https://github.com/caomuqing/rviz_view_publisher
+git clone https://github.com/ros-visualization/view_controller_msgs
 cd ..
 catkin build
 source devel/setup.bash
