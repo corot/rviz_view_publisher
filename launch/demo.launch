@@ -12,6 +12,6 @@
         respawn="false" output="screen" args="$(arg command_args)">
   </node>
 
-  <node name="$(anon camera_test)" pkg="view_controller_msgs" type="SquareTest" output="screen" />
-
+<!--   <node name="$(anon camera_test)" pkg="view_controller_msgs" type="SquareTest" output="screen" />
+ -->
 </launch>
