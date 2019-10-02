@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(rviz_animated_view_controller)
+project(rviz_view_publisher)
 
 find_package(cmake_modules REQUIRED)
 find_package(Eigen REQUIRED)
@@ -30,7 +30,7 @@ catkin_package(
   )
 
 qt5_wrap_cpp(MOC_FILES
-  include/${PROJECT_NAME}/rviz_animated_view_controller.h
+  include/rviz_animated_view_controller/rviz_animated_view_controller.h
 )
 
 include_directories(include

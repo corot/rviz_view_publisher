@@ -1,5 +1,5 @@
 <package>
-  <name>rviz_animated_view_controller</name>
+  <name>rviz_view_publisher</name>
   <version>0.1.1</version>
   <description>A rviz view controller featuring smooth transitions.</description>
   <author email="adamleeper@gmail.com">Adam Leeper</author>

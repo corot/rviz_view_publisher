@@ -21,6 +21,6 @@ Launching
 
 You may launch a pre-configured rviz view:
 ```
-roslaunch rviz_animated_view_controller demo.launch
+roslaunch rviz_view_publisher demo.launch
 ```
 Or you can open a clean rviz and go to Panels->Views and select Animated(rviz_animated_view_controller) in the right-side panel. Then you will be able to see a topic called `/rviz_view` in your `rostopic list`.
