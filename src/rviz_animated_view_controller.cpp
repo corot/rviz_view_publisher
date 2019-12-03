@@ -149,7 +149,7 @@ void AnimatedViewController::updateTopics()
   // placement_subscriber_  = nh_.subscribe<view_controller_msgs::CameraPlacement>
   //                             (camera_placement_topic_property_->getStdString(), 1,
   //                             boost::bind(&AnimatedViewController::cameraPlacementCallback, this, _1));
-  view_publisher_ = nh_.advertise<geometry_msgs::Pose>("rviz_view", 50);
+  view_publisher_ = nh_.advertise<geometry_msgs::PoseStamped>("rviz_view", 50);
   timer = nh_.createTimer(ros::Duration(1.0/10.0), boost::bind(&AnimatedViewController::timerCallback, this, _1));
 }
 
@@ -788,14 +788,16 @@ void AnimatedViewController::timerCallback(const ros::TimerEvent&)
   // ROS_INFO("eye position is x: %f y: %f z: %f", camera_position.x, camera_position.y, camera_position.z);
   Ogre::Quaternion camera_orientation = getOrientation();
   //ROS_INFO("eye orientation is x: %f y: %f z: %f w: %f", camera_orientation.x, camera_orientation.y, camera_orientation.z, camera_orientation.w);
-  geometry_msgs::Pose camera_view;
-  camera_view.position.x = camera_position.x;
-  camera_view.position.y = camera_position.y;
-  camera_view.position.z = camera_position.z;
-  camera_view.orientation.x = camera_orientation.x;
-  camera_view.orientation.y = camera_orientation.y;
-  camera_view.orientation.z = camera_orientation.z;
-  camera_view.orientation.w = camera_orientation.w;
+  geometry_msgs::PoseStamped camera_view;
+  camera_view.header.stamp = current_time;
+  camera_view.header.frame_id = attached_frame_property_->getFrameStd();
+  camera_view.pose.position.x = camera_position.x;
+  camera_view.pose.position.y = camera_position.y;
+  camera_view.pose.position.z = camera_position.z;
+  camera_view.pose.orientation.x = camera_orientation.x;
+  camera_view.pose.orientation.y = camera_orientation.y;
+  camera_view.pose.orientation.z = camera_orientation.z;
+  camera_view.pose.orientation.w = camera_orientation.w;
   view_publisher_.publish(camera_view);
 }
 
