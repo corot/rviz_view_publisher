@@ -146,9 +146,9 @@ void AnimatedViewController::updateTopics()
 //  trajectory_subscriber_ = nh_.subscribe<view_controller_msgs::CameraPlacementTrajectory>
 //                              (camera_placement_trajectory_topic_property_->getStdString(), 1,
 //                              boost::bind(&AnimatedViewController::cameraPlacementTrajectoryCallback, this, _1));
-  // placement_subscriber_  = nh_.subscribe<view_controller_msgs::CameraPlacement>
-  //                             (camera_placement_topic_property_->getStdString(), 1,
-  //                             boost::bind(&AnimatedViewController::cameraPlacementCallback, this, _1));
+   placement_subscriber_  = nh_.subscribe<view_controller_msgs::CameraPlacement>
+                               (camera_placement_topic_property_->getStdString(), 1,
+                               boost::bind(&AnimatedViewController::cameraPlacementCallback, this, _1));
   view_publisher_ = nh_.advertise<geometry_msgs::PoseStamped>("rviz_view", 50);
   timer = nh_.createTimer(ros::Duration(1.0/10.0), boost::bind(&AnimatedViewController::timerCallback, this, _1));
 }
