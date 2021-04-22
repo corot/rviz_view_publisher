@@ -149,7 +149,7 @@ void AnimatedViewController::updateTopics()
    placement_subscriber_  = nh_.subscribe<view_controller_msgs::CameraPlacement>
                                (camera_placement_topic_property_->getStdString(), 1,
                                boost::bind(&AnimatedViewController::cameraPlacementCallback, this, _1));
-  view_publisher_ = nh_.advertise<geometry_msgs::PoseStamped>("rviz_view", 50);
+  view_publisher_ = nh_.advertise<geometry_msgs::PoseStamped>("rviz/camera_pose", 1);
   timer = nh_.createTimer(ros::Duration(1.0/10.0), boost::bind(&AnimatedViewController::timerCallback, this, _1));
 }
 
@@ -784,10 +784,16 @@ void AnimatedViewController::move_eye( float x, float y, float z )
 void AnimatedViewController::timerCallback(const ros::TimerEvent&)
 {
   ros::Time current_time = ros::Time::now();
-  Ogre::Vector3 camera_position =   eye_point_property_->getVector();
-  // ROS_INFO("eye position is x: %f y: %f z: %f", camera_position.x, camera_position.y, camera_position.z);
-  Ogre::Quaternion camera_orientation = getOrientation();
-  //ROS_INFO("eye orientation is x: %f y: %f z: %f w: %f", camera_orientation.x, camera_orientation.y, camera_orientation.z, camera_orientation.w);
+  Ogre::Vector3 camera_position = eye_point_property_->getVector();
+
+  // on RViz's camera orientation, +z axis points in the focus-to-eye vector's direction, but in Gazebo
+  // the camera's +x axis is expected to point towards the focus, hence the 0, pi/2, pi/2 rotation
+  tf::Quaternion invQ_tf = tf::createQuaternionFromRPY(0.0, M_PI_2, M_PI_2);
+  Ogre::Quaternion invQ(invQ_tf.w(), invQ_tf.x(), invQ_tf.y(), invQ_tf.z());
+  Ogre::Quaternion camera_orientation = getOrientation() * invQ;
+  camera_orientation.normalise();
+//  ROS_INFO("eye position is x: %f y: %f z: %f", camera_target.x - camera_position.x, camera_target.y - camera_position.y, camera_target.z - camera_position.z);
+//  ROS_INFO("eye orientation is x: %f y: %f z: %f w: %f", camera_orientation.x, camera_orientation.y, camera_orientation.z, camera_orientation.w);
   geometry_msgs::PoseStamped camera_view;
   camera_view.header.stamp = current_time;
   camera_view.header.frame_id = attached_frame_property_->getFrameStd();
