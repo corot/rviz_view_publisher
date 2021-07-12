@@ -142,6 +142,10 @@ AnimatedViewController::AnimatedViewController()
                                                            "Topic for CameraTrajectory messages", this,
                                                            SLOT(updateTopics()));
 
+  publish_view_images_property_ = new BoolProperty("Publish View Images During Animation", false, 
+                                                   "If enabled, publishes images of what the user sees in the visualization window during an animation.", 
+                                                   this);
+
   initializePublishers();
 }
 
@@ -632,6 +636,7 @@ void AnimatedViewController::cameraTrajectoryCallback(const view_controller_msgs
   {
     render_frame_by_frame_ = true;
     target_fps_ = static_cast<int>(ct.frames_per_second);
+    publish_view_images_property_->setBool(true);
   }
 
   for(auto& cam_movement : ct.trajectory)
@@ -755,7 +760,7 @@ void AnimatedViewController::update(float dt, float ros_dt)
     camera_->setFixedYawAxis(true, reference_orientation_ * up_vector_property_->getVector());
     camera_->setDirection(reference_orientation_ * (focus_point_property_->getVector() - eye_point_property_->getVector()));
 
-    if(render_frame_by_frame_)
+    if(publish_view_images_property_->getBool())
       publishViewImage();
 
     if(finished_current_movement)

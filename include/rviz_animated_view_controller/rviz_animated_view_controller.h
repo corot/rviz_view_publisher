@@ -330,6 +330,8 @@ protected:    //members
   rviz::RosTopicProperty* camera_placement_topic_property_;
   rviz::RosTopicProperty* camera_trajectory_topic_property_;
 
+  rviz::BoolProperty* publish_view_images_property_;      ///< If True, the camera view is published as images.
+
   rviz::TfFrameProperty* attached_frame_property_;
   Ogre::SceneNode* attached_scene_node_;
 
