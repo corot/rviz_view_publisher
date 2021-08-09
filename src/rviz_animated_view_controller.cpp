@@ -148,6 +148,9 @@ AnimatedViewController::AnimatedViewController()
   window_width_property_ = new FloatProperty("Window Width", 1000, "The width of the rviz visualization window in pixels.", this);
   window_height_property_ = new FloatProperty("Window Height", 1000, "The height of the rviz visualization window in pixels.", this);
   
+  publish_view_images_property_ = new BoolProperty("Publish View Images During Animation", false, 
+                                                   "If enabled, publishes images of what the user sees in the visualization window during an animation.", 
+                                                   this);
   initializePublishers();
 }
 
@@ -171,6 +174,9 @@ void AnimatedViewController::updateTopics()
 void AnimatedViewController::initializePublishers()
 {
   finished_animation_publisher_ = nh_.advertise<std_msgs::Bool>("/rviz/finished_animation", 1);
+
+  image_transport::ImageTransport it(nh_);
+  camera_view_image_publisher_ = it.advertise("/rviz/view_image", 1);
 }
 
 void AnimatedViewController::onInitialize()
@@ -642,6 +648,7 @@ void AnimatedViewController::cameraTrajectoryCallback(const view_controller_msgs
   {
     render_frame_by_frame_ = true;
     target_fps_ = static_cast<int>(ct.frames_per_second);
+    publish_view_images_property_->setBool(true);
   }
 
   for(auto& cam_movement : ct.trajectory)
@@ -765,6 +772,9 @@ void AnimatedViewController::update(float dt, float ros_dt)
     camera_->setFixedYawAxis(true, reference_orientation_ * up_vector_property_->getVector());
     camera_->setDirection(reference_orientation_ * (focus_point_property_->getVector() - eye_point_property_->getVector()));
 
+    if(publish_view_images_property_->getBool())
+      publishViewImage();
+
     if(finished_current_movement)
     {
       // delete current start element in buffer
@@ -811,6 +821,56 @@ float AnimatedViewController::computeRelativeProgressInSpace(double relative_pro
     default:
       return 0.5f * (1.f - static_cast<float>(cos(relative_progress_in_time * M_PI)));
   }
+}
+
+void AnimatedViewController::publishViewImage()
+{
+  if(camera_view_image_publisher_.getNumSubscribers() > 0)
+  {
+    std::shared_ptr<Ogre::PixelBox> pixel_box = std::make_shared<Ogre::PixelBox>();
+    getViewImage(pixel_box);
+
+    sensor_msgs::ImagePtr image_msg = sensor_msgs::ImagePtr(new sensor_msgs::Image());
+    convertImage(pixel_box, image_msg);
+
+    camera_view_image_publisher_.publish(image_msg);
+
+    delete[] (unsigned char*)pixel_box->data;
+  }
+}
+
+void AnimatedViewController::getViewImage(std::shared_ptr<Ogre::PixelBox>& pixel_box)
+{
+  const unsigned int image_height = context_->getViewManager()->getRenderPanel()->getRenderWindow()->getHeight();
+  const unsigned int image_width = context_->getViewManager()->getRenderPanel()->getRenderWindow()->getWidth();
+
+  // create a PixelBox to store the rendered view image
+  const Ogre::PixelFormat pixel_format = Ogre::PF_BYTE_BGR;
+  const auto bytes_per_pixel = Ogre::PixelUtil::getNumElemBytes(pixel_format);
+  auto image_data = new unsigned char[image_width * image_height * bytes_per_pixel];
+  Ogre::Box image_extents(0, 0, image_width, image_height);
+  pixel_box = std::make_shared<Ogre::PixelBox>(image_extents, pixel_format, image_data);
+  context_->getViewManager()->getRenderPanel()->getRenderWindow()->copyContentsToMemory(*pixel_box,
+                                                                                        Ogre::RenderTarget::FB_AUTO);
+}
+
+void AnimatedViewController::convertImage(std::shared_ptr<Ogre::PixelBox> input_image,
+                                          sensor_msgs::ImagePtr output_image)
+{
+  const auto bytes_per_pixel = Ogre::PixelUtil::getNumElemBytes(input_image->format);
+  const auto image_height = input_image->getHeight();
+  const auto image_width = input_image->getWidth();
+
+  output_image->header.frame_id = attached_frame_property_->getStdString();
+  output_image->header.stamp = ros::Time::now();
+  output_image->height = image_height;
+  output_image->width = image_width;
+  output_image->encoding = sensor_msgs::image_encodings::BGR8;
+  output_image->is_bigendian = false;
+  output_image->step = static_cast<unsigned int>(image_width * bytes_per_pixel);
+  size_t size = image_width * image_height * bytes_per_pixel;
+  output_image->data.resize(size);
+  memcpy((char*)(&output_image->data[0]), input_image->data, size);
 }
 
 void AnimatedViewController::prepareNextMovement(const ros::Duration& previous_transition_duration)
