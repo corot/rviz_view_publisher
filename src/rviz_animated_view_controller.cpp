@@ -36,6 +36,8 @@
 #include "rviz/viewport_mouse_event.h"
 #include "rviz/frame_manager.h"
 #include "rviz/geometry.h"
+#include "rviz/view_manager.h"
+#include "rviz/render_panel.h"
 #include "rviz/ogre_helpers/shape.h"
 #include "rviz/properties/float_property.h"
 #include "rviz/properties/vector_property.h"
@@ -52,6 +54,7 @@
 #include <OGRE/OgreSceneNode.h>
 #include <OGRE/OgreSceneManager.h>
 #include <OGRE/OgreCamera.h>
+#include <OGRE/OgreRenderWindow.h>
 
 namespace rviz_animated_view_controller
 {
@@ -142,6 +145,9 @@ AnimatedViewController::AnimatedViewController()
                                                            "Topic for CameraTrajectory messages", this,
                                                            SLOT(updateTopics()));
 
+  window_width_property_ = new FloatProperty("Window Width", 1000, "The width of the rviz visualization window in pixels.", this);
+  window_height_property_ = new FloatProperty("Window Height", 1000, "The height of the rviz visualization window in pixels.", this);
+  
   initializePublishers();
 }
 
@@ -181,6 +187,13 @@ void AnimatedViewController::onInitialize()
     focal_shape_->setColor(1.0f, 1.0f, 0.0f, 0.5f);
     focal_shape_->getRootNode()->setVisible(false);
 
+    updateWindowSizeProperties();
+}
+
+void AnimatedViewController::updateWindowSizeProperties()
+{
+  window_width_property_->setFloat(context_->getViewManager()->getRenderPanel()->getRenderWindow()->getWidth());
+  window_height_property_->setFloat(context_->getViewManager()->getRenderPanel()->getRenderWindow()->getHeight());
 }
 
 void AnimatedViewController::onActivate()
@@ -764,6 +777,7 @@ void AnimatedViewController::update(float dt, float ros_dt)
     }
   }
   updateCamera();
+  updateWindowSizeProperties();
 }
 
 double AnimatedViewController::computeRelativeProgressInTime(const ros::Duration& transition_duration)
