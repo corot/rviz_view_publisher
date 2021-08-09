@@ -39,6 +39,8 @@
 #include <ros/subscriber.h>
 #include <ros/ros.h>
 
+#include <geometry_msgs/Pose.h>
+
 #include <std_msgs/Bool.h>
 
 #include <view_controller_msgs/CameraMovement.h>
@@ -130,7 +132,9 @@ public:
 
   virtual void handleMouseEvent(rviz::ViewportMouseEvent& evt);
 
-
+  /** @brief Publishes the current camera pose. */
+  void publishCameraPose();
+  
   /** @brief Calls beginNewTransition() to
       move the focus point to the point provided, assumed to be in the Rviz Fixed Frame */
   virtual void lookAt( const Ogre::Vector3& point );
@@ -333,6 +337,7 @@ protected:    //members
   ros::Subscriber placement_subscriber_;
   ros::Subscriber trajectory_subscriber_;
 
+  ros::Publisher current_camera_pose_publisher_;
   ros::Publisher finished_animation_publisher_;
 
   bool render_frame_by_frame_;
