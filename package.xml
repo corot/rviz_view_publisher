@@ -24,6 +24,7 @@
   <depend>image_transport</depend>
   <depend>cmake_modules</depend>
   <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
   <depend>view_controller_msgs</depend>
   <depend>rviz</depend>
   <depend>pluginlib</depend>

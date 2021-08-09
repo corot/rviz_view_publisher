@@ -173,6 +173,7 @@ void AnimatedViewController::updateTopics()
 
 void AnimatedViewController::initializePublishers()
 {
+  current_camera_pose_publisher_ = nh_.advertise<geometry_msgs::Pose>("/rviz/current_camera_pose", 1);
   finished_animation_publisher_ = nh_.advertise<std_msgs::Bool>("/rviz/finished_animation", 1);
 
   image_transport::ImageTransport it(nh_);
@@ -462,8 +463,22 @@ void AnimatedViewController::handleMouseEvent(ViewportMouseEvent& event)
 
   if (moved)
   {
+    publishCameraPose();
     context_->queueRender();
   }
+}
+
+void AnimatedViewController::publishCameraPose()
+{
+  geometry_msgs::Pose cam_pose;
+  cam_pose.position.x = camera_->getPosition().x;
+  cam_pose.position.y = camera_->getPosition().y;
+  cam_pose.position.z = camera_->getPosition().z;
+  cam_pose.orientation.w = camera_->getOrientation().w;
+  cam_pose.orientation.x = camera_->getOrientation().x;
+  cam_pose.orientation.y = camera_->getOrientation().y;
+  cam_pose.orientation.z = camera_->getOrientation().z;
+  current_camera_pose_publisher_.publish(cam_pose);
 }
 
 //void AnimatedViewController::setUpVectorPropertyModeDependent( const Ogre::Vector3 &vector )
@@ -772,6 +787,8 @@ void AnimatedViewController::update(float dt, float ros_dt)
     camera_->setFixedYawAxis(true, reference_orientation_ * up_vector_property_->getVector());
     camera_->setDirection(reference_orientation_ * (focus_point_property_->getVector() - eye_point_property_->getVector()));
 
+    publishCameraPose();
+    
     if(publish_view_images_property_->getBool())
       publishViewImage();
 
