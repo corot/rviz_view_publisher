@@ -1,16 +1,19 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(rviz_animated_view_controller)
 
 find_package(cmake_modules REQUIRED)
-find_package(Eigen REQUIRED)
+find_package(Eigen3 3.3 REQUIRED)
 find_package(Boost REQUIRED system filesystem)
 
+find_package(PkgConfig REQUIRED)
 # Ogre
 pkg_check_modules(OGRE OGRE)
 
 find_package(OpenGL REQUIRED)
 
 find_package(catkin REQUIRED COMPONENTS
+ cv_bridge
+ image_transport
  rviz
  pluginlib
  geometry_msgs
@@ -31,7 +34,8 @@ if(rviz_QT_VERSION VERSION_LESS "5")
   )
 else()
   message(STATUS "Using Qt5 based on the rviz_QT_VERSION: ${rviz_QT_VERSION}")
-  find_package(Qt5 ${rviz_QT_VERSION} EXACT REQUIRED Core Widgets)
+  find_package(Qt5Widgets ${rviz_QT_VERSION} EXACT REQUIRED)
+  find_package(Qt5Core ${rviz_QT_VERSION} EXACT REQUIRED)
   ## make target_link_libraries(${QT_LIBRARIES}) pull in all required dependencies
   set(QT_LIBRARIES Qt5::Widgets)
 

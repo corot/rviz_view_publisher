@@ -34,7 +34,13 @@
 
 #include <boost/circular_buffer.hpp>
 
+#include <cv_bridge/cv_bridge.h>
+
+#include <image_transport/image_transport.h>
+
 #include "rviz/view_controller.h"
+#include "rviz/view_manager.h"
+#include "rviz/render_panel.h"
 
 #include <ros/subscriber.h>
 #include <ros/ros.h>
@@ -47,6 +53,7 @@
 #include <view_controller_msgs/CameraPlacement.h>
 #include <view_controller_msgs/CameraTrajectory.h>
 
+#include <OGRE/OgreRenderWindow.h>
 #include <OGRE/OgreVector3.h>
 #include <OGRE/OgreQuaternion.h>
 
@@ -187,6 +194,7 @@ protected Q_SLOTS:
   virtual void onUpPropertyChanged();
 
 protected:  //methods
+  void updateWindowSizeProperties();
 
   /** @brief Called at 30Hz by ViewManager::update() while this view
    * is active. Override with code that needs to run repeatedly. */
@@ -230,6 +238,15 @@ protected:  //methods
   float computeRelativeProgressInSpace(double relative_progress_in_time,
                                        uint8_t interpolation_speed);
 
+  /** @brief Publish the rendered image that is visible to the user in rviz. */
+  void publishViewImage();
+
+  /** @brief Get the current image rviz is showing as an Ogre::PixelBox. */
+  void getViewImage(std::shared_ptr<Ogre::PixelBox>& pixel_box);
+
+  void convertImage(std::shared_ptr<Ogre::PixelBox> input_image,
+                    sensor_msgs::ImagePtr output_image);
+  
   /** @brief Updates the transition_start_time_ and resets the rendered_frames_counter_ for next movement. */
   void prepareNextMovement(const ros::Duration& previous_transition_duration);
   
@@ -318,6 +335,11 @@ protected:    //members
   rviz::RosTopicProperty* camera_placement_topic_property_;
   rviz::RosTopicProperty* camera_trajectory_topic_property_;
 
+  rviz::FloatProperty* window_width_property_;            ///< The width of the rviz visualization window in pixels.
+  rviz::FloatProperty* window_height_property_;           ///< The height of the rviz visualization window in pixels.
+
+  rviz::BoolProperty* publish_view_images_property_;      ///< If True, the camera view is published as images.
+
   rviz::TfFrameProperty* attached_frame_property_;
   Ogre::SceneNode* attached_scene_node_;
 
@@ -339,6 +361,7 @@ protected:    //members
 
   ros::Publisher current_camera_pose_publisher_;
   ros::Publisher finished_animation_publisher_;
+  image_transport::Publisher camera_view_image_publisher_;
 
   bool render_frame_by_frame_;
   int target_fps_;
