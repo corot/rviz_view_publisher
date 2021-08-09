@@ -190,6 +190,7 @@ protected Q_SLOTS:
   virtual void onUpPropertyChanged();
 
 protected:  //methods
+  void updateWindowSizeProperties();
 
   /** @brief Called at 30Hz by ViewManager::update() while this view
    * is active. Override with code that needs to run repeatedly. */
@@ -329,6 +330,9 @@ protected:    //members
 
   rviz::RosTopicProperty* camera_placement_topic_property_;
   rviz::RosTopicProperty* camera_trajectory_topic_property_;
+
+  rviz::FloatProperty* window_width_property_;            ///< The width of the rviz visualization window in pixels.
+  rviz::FloatProperty* window_height_property_;           ///< The height of the rviz visualization window in pixels.
 
   rviz::BoolProperty* publish_view_images_property_;      ///< If True, the camera view is published as images.
 
