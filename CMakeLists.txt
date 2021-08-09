@@ -12,6 +12,8 @@ pkg_check_modules(OGRE OGRE)
 find_package(OpenGL REQUIRED)
 
 find_package(catkin REQUIRED COMPONENTS
+ cv_bridge
+ image_transport
  rviz
  pluginlib
  std_msgs

@@ -20,6 +20,8 @@
   <depend>opengl</depend>
   <depend>eigen</depend>
 
+  <depend>cv_bridge</depend>
+  <depend>image_transport</depend>
   <depend>cmake_modules</depend>
   <depend>std_msgs</depend>
   <depend>view_controller_msgs</depend>
