@@ -102,6 +102,7 @@ AnimatedViewController::AnimatedViewController()
     , render_frame_by_frame_(false)
     , target_fps_(60)
     , rendered_frames_counter_(0)
+    , pause_animation_duration_(0.0)
 {
   interaction_disabled_cursor_ = makeIconCursor( "package://rviz/icons/forbidden.svg" );
 
@@ -152,6 +153,7 @@ AnimatedViewController::AnimatedViewController()
                                                    "If enabled, publishes images of what the user sees in the visualization window during an animation.", 
                                                    this);
   initializePublishers();
+  initializeSubscribers();
 }
 
 AnimatedViewController::~AnimatedViewController()
@@ -178,6 +180,18 @@ void AnimatedViewController::initializePublishers()
 
   image_transport::ImageTransport it(nh_);
   camera_view_image_publisher_ = it.advertise("/rviz/view_image", 1);
+}
+
+void AnimatedViewController::initializeSubscribers()
+{
+  pause_animation_duration_subscriber_ = nh_.subscribe("/rviz/pause_animation_duration", 1,
+                                                       &AnimatedViewController::pauseAnimationCallback, this);
+}
+
+void AnimatedViewController::pauseAnimationCallback(const std_msgs::Duration::ConstPtr& pause_duration_msg)
+{
+  pause_animation_duration_.sec = pause_duration_msg->data.sec;
+  pause_animation_duration_.nsec = pause_duration_msg->data.nsec;
 }
 
 void AnimatedViewController::onInitialize()
@@ -756,6 +770,8 @@ void AnimatedViewController::update(float dt, float ros_dt)
 
   if(animate_ && isMovementAvailable())
   {
+    pauseAnimationOnRequest();
+
     auto start = cam_movements_buffer_.begin();
     auto goal = ++(cam_movements_buffer_.begin());
 
@@ -805,6 +821,16 @@ void AnimatedViewController::update(float dt, float ros_dt)
   }
   updateCamera();
   updateWindowSizeProperties();
+}
+
+void AnimatedViewController::pauseAnimationOnRequest()
+{
+  if(pause_animation_duration_.toSec() > 0.0)
+  {
+    pause_animation_duration_.sleep();
+    transition_start_time_ += pause_animation_duration_;
+    pause_animation_duration_.fromSec(0.0);
+  }
 }
 
 double AnimatedViewController::computeRelativeProgressInTime(const ros::Duration& transition_duration)

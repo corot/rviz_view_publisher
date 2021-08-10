@@ -48,6 +48,7 @@
 #include <geometry_msgs/Pose.h>
 
 #include <std_msgs/Bool.h>
+#include <std_msgs/Duration.h>
 
 #include <view_controller_msgs/CameraMovement.h>
 #include <view_controller_msgs/CameraPlacement.h>
@@ -112,6 +113,7 @@ public:
   virtual ~AnimatedViewController();
 
   void initializePublishers();
+  void initializeSubscribers();
 
   /** @brief Do subclass-specific initialization.  Called by
    * ViewController::initialize after context_ and camera_ are set.
@@ -200,6 +202,13 @@ protected:  //methods
    * is active. Override with code that needs to run repeatedly. */
   virtual void update(float dt, float ros_dt);
 
+  /** @brief Pauses the animation if pause_animation_duration_ is larger than zero.
+   *
+   * Adds the pause_animation_duration_ to the transition_start_time_ to continue the animation from
+   * where it was paused.
+   */
+  void pauseAnimationOnRequest();
+
   /** @brief Returns true if buffer contains at least one start and end pose needed for one movement. */
   bool isMovementAvailable(){ return cam_movements_buffer_.size() >= 2; };
 
@@ -273,6 +282,12 @@ protected:  //methods
    */
   void cameraTrajectoryCallback(const view_controller_msgs::CameraTrajectoryConstPtr& ct_ptr);
   
+  /** @brief Sets the duration the rendering has to wait for during the next update cycle.
+   *
+   * @params[in] pause_duration_msg  duration to wait for.
+   */
+  void pauseAnimationCallback(const std_msgs::Duration::ConstPtr& pause_duration_msg);
+
   /** @brief Transforms the camera defined by eye, focus and up into the attached frame.
    *
    * @param[in,out] eye     position of the camera.
@@ -358,6 +373,7 @@ protected:    //members
   
   ros::Subscriber placement_subscriber_;
   ros::Subscriber trajectory_subscriber_;
+  ros::Subscriber pause_animation_duration_subscriber_;
 
   ros::Publisher current_camera_pose_publisher_;
   ros::Publisher finished_animation_publisher_;
@@ -366,6 +382,8 @@ protected:    //members
   bool render_frame_by_frame_;
   int target_fps_;
   int rendered_frames_counter_;
+
+  ros::WallDuration pause_animation_duration_;
 };
 
 }  // namespace rviz_animated_view_controller
