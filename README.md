@@ -48,7 +48,7 @@ source devel/setup.bash
 rviz
 ```
 
-![rviz_view_panel](docs/rviz_view_panel.git)
+![rviz_view_panel](docs/rviz_view_panel.png)
 
 
 ## How to use
