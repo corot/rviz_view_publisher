@@ -4,6 +4,8 @@ Changelog for package rviz_animated_view_controller
 
 0.2.0 (2021-08-19)
 ------------------
+* add license file
+* fix typo in README image link
 * clip gif a bit shorter
 * add README and demo gif
 * Add option to pause the current animation
