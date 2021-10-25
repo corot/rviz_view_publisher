@@ -32,12 +32,12 @@
 #ifndef RVIZ_ANIMATED_VIEW_CONTROLLER_H
 #define RVIZ_ANIMATED_VIEW_CONTROLLER_H
 
-#include "rviz/view_controller.h"
+#include <rviz/view_controller.h>
 
 #include <ros/subscriber.h>
 #include <ros/ros.h>
 
-#include "view_controller_msgs/CameraPlacement.h"
+#include <view_controller_msgs/CameraPlacement.h>
 
 #include <OGRE/OgreVector3.h>
 #include <OGRE/OgreQuaternion.h>

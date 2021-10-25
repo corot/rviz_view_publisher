@@ -28,23 +28,23 @@
  */
 
 
-#include "rviz_animated_view_controller/rviz_animated_view_controller.h"
+#include <rviz/load_resource.h>
+#include <rviz/uniform_string_stream.h>
+#include <rviz/display_context.h>
+#include <rviz/viewport_mouse_event.h>
+#include <rviz/frame_manager.h>
+#include <rviz/geometry.h>
+#include <rviz/ogre_helpers/shape.h>
+#include <rviz/properties/float_property.h>
+#include <rviz/properties/vector_property.h>
+#include <rviz/properties/bool_property.h>
+#include <rviz/properties/tf_frame_property.h>
+#include <rviz/properties/editable_enum_property.h>
+#include <rviz/properties/ros_topic_property.h>
 
-#include "rviz/load_resource.h"
-#include "rviz/uniform_string_stream.h"
-#include "rviz/display_context.h"
-#include "rviz/viewport_mouse_event.h"
-#include "rviz/frame_manager.h"
-#include "rviz/geometry.h"
-#include "rviz/ogre_helpers/shape.h"
-#include "rviz/properties/float_property.h"
-#include "rviz/properties/vector_property.h"
-#include "rviz/properties/bool_property.h"
-#include "rviz/properties/tf_frame_property.h"
-#include "rviz/properties/editable_enum_property.h"
-#include "rviz/properties/ros_topic_property.h"
-
-#include "view_controller_msgs/CameraPlacement.h"
+#include <tf/transform_datatypes.h>
+#include <tf/LinearMath/Quaternion.h>
+#include <geometry_msgs/PoseStamped.h>
 
 #include <OGRE/OgreViewport.h>
 #include <OGRE/OgreQuaternion.h>
@@ -52,6 +52,8 @@
 #include <OGRE/OgreSceneNode.h>
 #include <OGRE/OgreSceneManager.h>
 #include <OGRE/OgreCamera.h>
+
+#include "rviz_animated_view_controller/rviz_animated_view_controller.h"
 
 namespace rviz_animated_view_controller
 {

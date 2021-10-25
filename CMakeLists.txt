@@ -2,10 +2,11 @@ cmake_minimum_required(VERSION 2.8.3)
 project(rviz_view_publisher)
 
 find_package(cmake_modules REQUIRED)
-find_package(Eigen REQUIRED)
+find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED system filesystem)
 
 # Ogre
+find_package(PkgConfig REQUIRED)
 pkg_check_modules(OGRE OGRE)
 
 # Qt Stuff
