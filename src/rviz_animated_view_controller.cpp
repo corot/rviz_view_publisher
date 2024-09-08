@@ -56,6 +56,10 @@
 #include <OGRE/OgreCamera.h>
 #include <OGRE/OgreRenderWindow.h>
 
+#include <tf/transform_datatypes.h>
+#include <tf/LinearMath/Quaternion.h>
+#include <geometry_msgs/PoseStamped.h>
+
 namespace rviz_animated_view_controller
 {
 using namespace view_controller_msgs;
@@ -175,7 +179,7 @@ void AnimatedViewController::updateTopics()
 
 void AnimatedViewController::initializePublishers()
 {
-  current_camera_pose_publisher_ = nh_.advertise<geometry_msgs::Pose>("/rviz/current_camera_pose", 1);
+  current_camera_pose_publisher_ = nh_.advertise<geometry_msgs::PoseStamped>("/rviz/current_camera_pose", 1);
   finished_animation_publisher_ = nh_.advertise<std_msgs::Bool>("/rviz/finished_animation", 1);
 
   image_transport::ImageTransport it(nh_);
@@ -484,15 +488,28 @@ void AnimatedViewController::handleMouseEvent(ViewportMouseEvent& event)
 
 void AnimatedViewController::publishCameraPose()
 {
-  geometry_msgs::Pose cam_pose;
-  cam_pose.position.x = camera_->getPosition().x;
-  cam_pose.position.y = camera_->getPosition().y;
-  cam_pose.position.z = camera_->getPosition().z;
-  cam_pose.orientation.w = camera_->getOrientation().w;
-  cam_pose.orientation.x = camera_->getOrientation().x;
-  cam_pose.orientation.y = camera_->getOrientation().y;
-  cam_pose.orientation.z = camera_->getOrientation().z;
-  current_camera_pose_publisher_.publish(cam_pose);
+  ros::Time current_time = ros::Time::now();
+  Ogre::Vector3 camera_position = eye_point_property_->getVector();
+
+  // on RViz's camera orientation, +z axis points in the focus-to-eye vector's direction, but in Gazebo
+  // the camera's +x axis is expected to point towards the focus, hence the 0, pi/2, pi/2 rotation
+  tf::Quaternion invQ_tf = tf::createQuaternionFromRPY(0.0, M_PI_2, M_PI_2);
+  Ogre::Quaternion invQ(invQ_tf.w(), invQ_tf.x(), invQ_tf.y(), invQ_tf.z());
+  Ogre::Quaternion camera_orientation = getOrientation() * invQ;
+  camera_orientation.normalise();
+  //  ROS_INFO("eye position is x: %f y: %f z: %f", camera_target.x - camera_position.x, camera_target.y - camera_position.y, camera_target.z - camera_position.z);
+  //  ROS_INFO("eye orientation is x: %f y: %f z: %f w: %f", camera_orientation.x, camera_orientation.y, camera_orientation.z, camera_orientation.w);
+  geometry_msgs::PoseStamped camera_view;
+  camera_view.header.stamp = current_time;
+  camera_view.header.frame_id = attached_frame_property_->getFrameStd();
+  camera_view.pose.position.x = camera_position.x;
+  camera_view.pose.position.y = camera_position.y;
+  camera_view.pose.position.z = camera_position.z;
+  camera_view.pose.orientation.x = camera_orientation.x;
+  camera_view.pose.orientation.y = camera_orientation.y;
+  camera_view.pose.orientation.z = camera_orientation.z;
+  camera_view.pose.orientation.w = camera_orientation.w;
+  current_camera_pose_publisher_.publish(camera_view);
 }
 
 //void AnimatedViewController::setUpVectorPropertyModeDependent( const Ogre::Vector3 &vector )
